@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="UserVault — A modern, secure user management system with REST API. Manage users with style." />
+  <title>UserVault — Modern User Management</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>" />
+</head>
+<body>
+  <div class="app-container" id="app">
+    <!-- ─── Navigation ─── -->
+    <nav class="navbar" id="navbar">
+      <div class="navbar-brand" onclick="navigate('home')">
+        <div class="navbar-logo">UV</div>
+        <span class="navbar-title">UserVault</span>
+      </div>
+      <div class="navbar-nav" id="navLinks">
+        <!-- Populated by JS -->
+      </div>
+    </nav>
+
+    <!-- ─── Toast Container ─── -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ─── Home / Landing Page ─── -->
+    <div class="page-view active" id="page-home">
+      <section class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Secure • Fast • Modern
+          </div>
+          <h1>
+            Manage Users with<br />
+            <span class="gradient-text">Effortless Precision</span>
+          </h1>
+          <p class="hero-description">
+            UserVault is a full-featured REST API and dashboard for user management.
+            Create, read, update, and delete users—secured with authentication and
+            powered by MongoDB.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="navigate('register')">
+              ✦ Get Started
+            </button>
+            <button class="btn btn-secondary" onclick="navigate('login')">
+              Sign In →
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ─── Register Page ─── -->
+    <div class="page-view" id="page-register">
+      <div class="auth-page">
+        <div class="auth-card">
+          <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Join UserVault and start managing users</p>
+          </div>
+          <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="regFirstName">First Name</label>
+                <input class="form-input" type="text" id="regFirstName" placeholder="John" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="regLastName">Last Name</label>
+                <input class="form-input" type="text" id="regLastName" placeholder="Doe" required minlength="2" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regEmail">Email Address</label>
+              <div class="form-input-icon">
+                <span class="input-icon">✉</span>
+                <input class="form-input" type="email" id="regEmail" placeholder="john@example.com" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPhone">Phone Number</label>
+              <div class="form-input-icon">
+                <span class="input-icon">☎</span>
+                <input class="form-input" type="tel" id="regPhone" placeholder="+1 (555) 000-0000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="regPassword">Password</label>
+              <div class="form-input-icon">
+                <span class="input-icon">🔒</span>
+                <input class="form-input" type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6" />
+              </div>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn-primary" type="submit" id="registerBtn">
+                Create Account
+              </button>
+            </div>
+            <div class="form-switch">
+              Already have an account? <a onclick="navigate('login')">Sign in</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Login Page ─── -->
+    <div class="page-view" id="page-login">
+      <div class="auth-page">
+        <div class="auth-card">
+          <div class="auth-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to access your dashboard</p>
+          </div>
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label class="form-label" for="loginEmail">Email Address</label>
+              <div class="form-input-icon">
+                <span class="input-icon">✉</span>
+                <input class="form-input" type="email" id="loginEmail" placeholder="john@example.com" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="loginPassword">Password</label>
+              <div class="form-input-icon">
+                <span class="input-icon">🔒</span>
+                <input class="form-input" type="password" id="loginPassword" placeholder="Enter your password" required />
+              </div>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn-primary" type="submit" id="loginBtn">
+                Sign In
+              </button>
+            </div>
+            <div class="form-switch">
+              Don't have an account? <a onclick="navigate('register')">Create one</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Dashboard Page ─── -->
+    <div class="page-view" id="page-dashboard">
+      <div class="dashboard">
+        <!-- Header -->
+        <div class="dashboard-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Manage and monitor all registered users</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateModal()">
+            ＋ Add User
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="statTotal">—</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value" id="statActive">—</div>
+            <div class="stat-label">Active Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value" id="statNew">—</div>
+            <div class="stat-label">New This Month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⛔</div>
+            <div class="stat-value" id="statInactive">—</div>
+            <div class="stat-label">Inactive Users</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search users by name or email..." oninput="debounceSearch()" />
+          </div>
+          <div class="filter-group" id="filterGroup">
+            <button class="filter-chip active" onclick="filterRole('')" data-role="">All</button>
+            <button class="filter-chip" onclick="filterRole('user')" data-role="user">Users</button>
+            <button class="filter-chip" onclick="filterRole('admin')" data-role="admin">Admins</button>
+            <button class="filter-chip" onclick="filterRole('moderator')" data-role="moderator">Mods</button>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+          <table class="users-table" id="usersTable">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Phone</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+          <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📭</div>
+            <h3>No Users Found</h3>
+            <p>No users match your current filters. Try adjusting your search or add a new user.</p>
+          </div>
+          <div class="pagination" id="paginationContainer">
+            <div class="pagination-info" id="paginationInfo">Showing 0 users</div>
+            <div class="pagination-controls" id="paginationControls"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Create / Edit User Modal ─── -->
+    <div class="modal-overlay" id="userModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modalTitle">Add New User</h3>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="userForm" onsubmit="handleUserFormSubmit(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="modalFirstName">First Name</label>
+                <input class="form-input" type="text" id="modalFirstName" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="modalLastName">Last Name</label>
+                <input class="form-input" type="text" id="modalLastName" required minlength="2" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="modalEmail">Email</label>
+              <input class="form-input" type="email" id="modalEmail" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="modalPhone">Phone</label>
+              <input class="form-input" type="tel" id="modalPhone" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="modalRole">Role</label>
+                <select class="form-select" id="modalRole">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                  <option value="moderator">Moderator</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="modalStatus">Status</label>
+                <select class="form-select" id="modalStatus">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" id="modalPasswordGroup">
+              <label class="form-label" for="modalPassword">Password</label>
+              <input class="form-input" type="password" id="modalPassword" minlength="6" placeholder="Min 6 characters" />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" id="modalSubmitBtn" onclick="handleUserFormSubmit(event)">
+            Create User
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Delete Confirmation Modal ─── -->
+    <div class="modal-overlay" id="deleteModal">
+      <div class="modal" style="max-width: 420px;">
+        <div class="modal-header">
+          <h3>Confirm Deletion</h3>
+          <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="confirm-dialog">
+            <div class="confirm-dialog-icon">🗑</div>
+            <h4>Delete this user?</h4>
+            <p id="deleteUserName">This action cannot be undone.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+          <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">
+            Delete User
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

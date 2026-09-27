@@ -1,0 +1,381 @@
+{
+  "info": {
+    "name": "UserVault API",
+    "description": "Complete collection for testing the UserVault User Management REST API.\n\nAuthentication:\n- Public routes: Register, Login\n- Protected routes: Use Basic Auth (admin/admin123) or Bearer Token (from login response)\n\nSetup:\n1. Start the server: npm start\n2. Import this collection into Postman\n3. Register a user or use Basic Auth for protected endpoints\n4. Copy the token from login/register response for Bearer Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the API server is running."
+      }
+    },
+    {
+      "name": "Register User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.token) {",
+              "    pm.collectionVariables.set('token', jsonData.token);",
+              "}",
+              "if (jsonData.data && jsonData.data.id) {",
+              "    pm.collectionVariables.set('userId', jsonData.data.id);",
+              "}",
+              "",
+              "pm.test('Status code is 201', function() {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Response has token', function() {",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "});",
+              "pm.test('User data is returned', function() {",
+              "    pm.expect(jsonData.data).to.have.property('email');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"+1-555-0100\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "register"]
+        },
+        "description": "Register a new user. Returns JWT token and user data."
+      }
+    },
+    {
+      "name": "Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.token) {",
+              "    pm.collectionVariables.set('token', jsonData.token);",
+              "}",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Login returns token', function() {",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "login"]
+        },
+        "description": "Login with email and password. Returns JWT token."
+      }
+    },
+    {
+      "name": "Get All Users (Bearer Token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns users array', function() {",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "});",
+              "pm.test('Has pagination info', function() {",
+              "    pm.expect(jsonData.pagination).to.have.property('total');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        },
+        "description": "Get all users with pagination. Requires Bearer token."
+      }
+    },
+    {
+      "name": "Get All Users (Basic Auth)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46YWRtaW4xMjM="
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        },
+        "description": "Get all users using Basic Auth (admin:admin123, base64 encoded)."
+      }
+    },
+    {
+      "name": "Search Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users?search=john&role=user",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"],
+          "query": [
+            { "key": "search", "value": "john" },
+            { "key": "role", "value": "user" }
+          ]
+        },
+        "description": "Search users by name or email, with optional role filter."
+      }
+    },
+    {
+      "name": "Get User by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('User data returned', function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('email');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}"]
+        },
+        "description": "Get a single user by their MongoDB ObjectId."
+      }
+    },
+    {
+      "name": "Update User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('User was updated', function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.firstName).to.equal('Jane');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+1-555-0200\",\n  \"role\": \"moderator\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}"]
+        },
+        "description": "Update user details. Only send fields you want to change."
+      }
+    },
+    {
+      "name": "Delete User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Delete confirmed', function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.message).to.include('deleted');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}"]
+        },
+        "description": "Permanently delete a user by ID."
+      }
+    },
+    {
+      "name": "Get User Statistics",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Stats contain totalUsers', function() {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('totalUsers');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/stats",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "stats"]
+        },
+        "description": "Get user statistics: total, active, inactive, new this month, counts by role."
+      }
+    },
+    {
+      "name": "Unauthorized Request (No Auth)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function() {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"]
+        },
+        "description": "Test that protected routes return 401 without authentication."
+      }
+    }
+  ]
+}
